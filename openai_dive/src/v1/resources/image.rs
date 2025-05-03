@@ -57,6 +57,18 @@ pub struct EditImageParameters {
     /// Must be a valid PNG file, less than 4MB, and have the same dimensions as image.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mask: Option<FileUpload>,
+    /// The quality of the image that will be generated. hd creates images with finer details and greater consistency across the image.
+    /// This param is only supported for dall-e-3 and gpt-image-1.
+    ///
+    /// gpt-image-1 supports `high` `medium` and `low` only.
+    ///
+    /// dall-e-3 only supports `standard`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quality: Option<ImageQuality>,
+    /// The mime type of the image. If not provided, the mime type will be set to application/octet-stream.
+    /// gpt-image-1 expects `image/png`, `image/jpeg` or `image/webp`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mime_type: Option<String>,
     /// The model to use for image generation. Only dall-e-2 is supported at this time.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub model: Option<String>,
@@ -125,6 +137,9 @@ pub enum ImageSize {
 pub enum ImageQuality {
     Standard,
     Hd,
+    High,
+    Medium,
+    Low,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -231,6 +246,22 @@ impl ImageData {
             .map_err(|error| APIError::FileError(error.to_string()))?;
 
         Ok(full_path)
+    }
+}
+
+impl Display for ImageQuality {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                ImageQuality::Standard => "standard",
+                ImageQuality::Hd => "hd",
+                ImageQuality::High => "high",
+                ImageQuality::Medium => "medium",
+                ImageQuality::Low => "low",
+            }
+        )
     }
 }
 
